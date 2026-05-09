@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+body { font-family: 'Inter', system-ui, sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Terminal scanlines */
+body::after {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,.012) 2px, rgba(0,255,136,.012) 4px);
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #09090b; }
+::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
+::selection { background: rgba(0,255,136,.2); }
+
+.glow { text-shadow: 0 0 20px rgba(0,255,136,.6), 0 0 40px rgba(0,255,136,.3); }
+.glow-red { text-shadow: 0 0 20px rgba(239,68,68,.6); }
+
+/* Agent card pulse when running */
+.agent-running { box-shadow: 0 0 0 1px rgba(0,255,136,.3), 0 0 20px rgba(0,255,136,.1); }
