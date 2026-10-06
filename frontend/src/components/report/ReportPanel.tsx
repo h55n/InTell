@@ -391,6 +391,88 @@ function FinancialSection({ data }: { data: NonNullable<InvestigationReport['fin
   );
 }
 
+function LocationSection({ data }: { data: NonNullable<InvestigationReport['location']> }) {
+  const confidenceColor = data.locationConfidence === 'High'
+    ? 'green'
+    : data.locationConfidence === 'Medium'
+    ? 'yellow'
+    : 'default';
+  const locationSummary = [data.locality, data.city, data.district, data.state, data.country]
+    .filter((value): value is string => Boolean(value));
+
+  return (
+    <div className="space-y-5 pt-3">
+      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <MapPin className="h-4 w-4 text-accent" />
+          <span className="text-[10px] text-dim mono uppercase tracking-wider">Location confidence</span>
+          <Tag text={data.locationConfidence} color={confidenceColor} />
+        </div>
+        {locationSummary.length > 0 && (
+          <p className="mt-2 text-sm font-medium text-text">{locationSummary.join(', ')}</p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-x-8 md:grid-cols-2">
+        <Row label="Country" value={data.country} />
+        <Row label="State" value={data.state} />
+        <Row label="City" value={data.city} />
+        <Row label="District" value={data.district} />
+        <Row label="Locality" value={data.locality} />
+        <Row label="Pincode" value={data.pincode} mono />
+        <Row label="IP Geolocation" value={data.ipGeolocation} />
+      </div>
+
+      {data.isKnownScamZone && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4">
+          <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-red-400">
+            <AlertTriangle className="h-4 w-4" />
+            Reported association with a known scam zone
+          </div>
+          {data.scamZoneName && <div className="text-sm text-text">{data.scamZoneName}</div>}
+          {data.scamZoneNotes && <p className="mt-1 text-xs leading-relaxed text-dim">{data.scamZoneNotes}</p>}
+        </div>
+      )}
+
+      {data.signals.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-xs text-dim mono uppercase">
+            <Globe className="h-3.5 w-3.5" /> Location signals ({data.signals.length})
+          </div>
+          {data.signals.map((signal, index) => {
+            const hasWebSource = /^https?:\/\//i.test(signal.sourceUrl);
+            const signalConfidenceColor = signal.confidence === 'High'
+              ? 'green'
+              : signal.confidence === 'Medium'
+              ? 'yellow'
+              : 'default';
+
+            return (
+              <div key={`${signal.sourceUrl}-${index}`} className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    {hasWebSource ? (
+                      <a href={signal.sourceUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-sm font-medium text-info hover:underline">
+                        {signal.signalSource || 'Source'} <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                      </a>
+                    ) : (
+                      <div className="text-sm font-medium text-text">{signal.signalSource || 'Source'}</div>
+                    )}
+                    <div className="mt-1 text-xs text-dim">{signal.inferredLocation}</div>
+                  </div>
+                  <Tag text={signal.confidence} color={signalConfidenceColor} />
+                </div>
+                {signal.reasoning && <p className="mt-2 text-xs leading-relaxed text-dim">{signal.reasoning}</p>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-1">
