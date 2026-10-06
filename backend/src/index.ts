@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { orchestrate } from './orchestrator/index.js';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
-import { validateInput } from './middleware/validate.js';
+import { inferInputType, validateInput } from './middleware/validate.js';
 import { setReport, getReport, setIdMapping, getKeyById } from './cache/redis.js';
 import { logInvestigation } from './db/postgres.js';
 import { generatePdf } from './services/pdfExport.js';
@@ -47,14 +47,8 @@ app.post('/api/investigate', limiter, validateInput, async (req, res) => {
 
   const { input, inputType } = parsed.data;
 
-  // Auto-detect type if not provided
-  let resolvedType: 'phone' | 'email' | 'name' | 'business' = inputType ?? 'phone';
-  if (!inputType) {
-    if (/^\+?\d[\d\s\-]{7,15}$/.test(input)) resolvedType = 'phone';
-    else if (/@/.test(input)) resolvedType = 'email';
-    else if (/\b(pvt|ltd|llc|inc|corp|limited|private|technologies|consultancy)\b/i.test(input)) resolvedType = 'business';
-    else resolvedType = 'name';
-  }
+  // Auto-detect type if not provided; validation uses the same rule.
+  const resolvedType = inputType ?? inferInputType(input);
 
   // Cache key (normalised)
   const cacheKey = `report:${resolvedType}:${input.toLowerCase().replace(/\s+/g, '')}`;

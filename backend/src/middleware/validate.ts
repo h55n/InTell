@@ -1,5 +1,15 @@
 import type { Request, Response, NextFunction } from 'express';
 
+export type InvestigationInputType = 'phone' | 'email' | 'name' | 'business';
+
+/** Keep inference aligned with the API's optional-inputType behavior. */
+export function inferInputType(input: string): InvestigationInputType {
+  if (isValidPhone(normalizePhone(input))) return 'phone';
+  if (/@/.test(input)) return 'email';
+  if (/\b(pvt|ltd|llc|inc|corp|limited|private|technologies|consultancy)\b/i.test(input)) return 'business';
+  return 'name';
+}
+
 // ─── SSRF blocklist ───────────────────────────────────────────────────────────
 const SSRF_PATTERNS = [
   /^localhost$/i,
@@ -44,7 +54,12 @@ function isSsrf(input: string): boolean {
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
 export function validateInput(req: Request, res: Response, next: NextFunction) {
-  const { input, inputType } = req.body as { input?: string; inputType?: string };
+  const body = req.body as { input?: unknown; inputType?: string } | null;
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return res.status(400).json({ error: 'input is required' });
+  }
+
+  const { input, inputType } = body;
 
   if (!input || typeof input !== 'string') {
     return res.status(400).json({ error: 'input is required' });
@@ -58,7 +73,7 @@ export function validateInput(req: Request, res: Response, next: NextFunction) {
   }
 
   // Type-specific validation
-  const type = inputType ?? 'phone';
+  const type = inputType ?? inferInputType(trimmed);
 
   if (type === 'phone') {
     const normalized = normalizePhone(trimmed);
