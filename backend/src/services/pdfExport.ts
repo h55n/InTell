@@ -193,7 +193,7 @@ export async function generatePdf(report: InvestigationReport): Promise<Buffer> 
   const browser = await puppeteer.launch(launchOptions);
   try {
     const page = await browser.newPage();
-    await page.setContent(buildHtml(report), { waitUntil: 'networkidle0' });
+    await page.setContent(buildHtml(report), { waitUntil: 'load' });
     const pdf = await page.pdf({
       format: 'A4',
       margin: { top: '20mm', bottom: '20mm', left: '16mm', right: '16mm' },
