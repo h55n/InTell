@@ -44,7 +44,8 @@ function isSsrf(input: string): boolean {
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
 export function validateInput(req: Request, res: Response, next: NextFunction) {
-  const { input, inputType } = req.body as { input?: string; inputType?: string };
+  const body = (req.body ?? {}) as { input?: string; inputType?: string };
+  const { input, inputType } = body;
 
   if (!input || typeof input !== 'string') {
     return res.status(400).json({ error: 'input is required' });
@@ -65,18 +66,18 @@ export function validateInput(req: Request, res: Response, next: NextFunction) {
     if (!isValidPhone(normalized)) {
       return res.status(400).json({ error: 'Invalid phone number: must be 7–15 digits (E.164 compatible)' });
     }
-    req.body.input = normalized;
+    body.input = normalized;
   } else if (type === 'email') {
     if (!isValidEmail(trimmed)) {
       return res.status(400).json({ error: 'Invalid email address' });
     }
-    req.body.input = trimmed.toLowerCase();
+    body.input = trimmed.toLowerCase();
   } else if (type === 'business' || type === 'name') {
     const cleaned = sanitizeBusiness(trimmed);
     if (cleaned.length < 2) {
       return res.status(400).json({ error: 'Input too short after sanitization' });
     }
-    req.body.input = cleaned;
+    body.input = cleaned;
   }
 
   next();
