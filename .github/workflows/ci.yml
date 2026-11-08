@@ -21,7 +21,7 @@ jobs:
         run: npm audit --omit=dev
       - name: TypeScript check
         run: npx tsc --noEmit
-      - name: Dependency smoke tests
+      - name: Backend tests
         run: npm test
       - name: Build
         run: npm run build
