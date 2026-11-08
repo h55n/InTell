@@ -4,16 +4,16 @@ import type { InvestigationReport } from '../types/index.js';
 
 // ─── HTML builder ─────────────────────────────────────────────────────────────
 
-function buildHtml(report: InvestigationReport): string {
+export function buildHtml(report: InvestigationReport): string {
   const riskThemes: Record<string, { bg: string; border: string; color: string }> = {
     safe: {
       bg: '#22c55e',
       border: '#16a34a',
       color: '#ffffff',
     },
-    suspicious: {
-      bg: '#eab308',
-      border: '#ca8a04',
+    unsafe: {
+      bg: '#ef4444',
+      border: '#dc2626',
       color: '#ffffff',
     },
     high_risk: {
@@ -31,7 +31,14 @@ function buildHtml(report: InvestigationReport): string {
   const theme = riskThemes[report.safetyVerdict] ?? { bg: '#71717a', border: '#52525b', color: '#ffffff' };
 
   const esc = (s: string | null | undefined) =>
-    String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  const safeHref = (raw: string) => {
+    try {
+      const url = new URL(raw);
+      return ['http:', 'https:'].includes(url.protocol) ? esc(url.href) : '#';
+    } catch { return '#'; }
+  };
 
   const section = (title: string, body: string) => `
     <div class="section">
@@ -71,25 +78,25 @@ function buildHtml(report: InvestigationReport): string {
         </div>
         ${report.spam.categories.length ? `<p><strong>Categories:</strong> ${report.spam.categories.map(esc).join(', ')}</p>` : ''}
         ${report.spam.modus ? `<p><strong>Modus Operandi:</strong> ${esc(report.spam.modus)}</p>` : ''}
-        ${report.spam.sourceSummaries.map(s => `<p><a href="${esc(s.url)}">${esc(s.source)}</a> — ${s.reportCount} reports (${esc(s.category)}): ${esc(s.excerpt)}</p>`).join('')}
+        ${report.spam.sourceSummaries.map(s => `<p><a href="${safeHref(s.url)}">${esc(s.source)}</a> — ${s.reportCount} reports (${esc(s.category)}): ${esc(s.excerpt)}</p>`).join('')}
       `)
     : section('🚨 Spam Intelligence', '<p class="empty">No spam data available.</p>');
 
   // Build identity block
   const identityBlock = report.digitalIdentity
     ? section('🔍 Digital Identity', `
-        ${report.digitalIdentity.associatedNames.map(n => `<p>Name: <strong>${esc(n.name)}</strong> — <a href="${esc(n.url)}">${esc(n.source)}</a></p>`).join('')}
-        ${report.digitalIdentity.associatedEmails.map(e => `<p>Email: <code>${esc(e.email)}</code> — <a href="${esc(e.url)}">${esc(e.source)}</a></p>`).join('')}
+        ${report.digitalIdentity.associatedNames.map(n => `<p>Name: <strong>${esc(n.name)}</strong> — <a href="${safeHref(n.url)}">${esc(n.source)}</a></p>`).join('')}
+        ${report.digitalIdentity.associatedEmails.map(e => `<p>Email: <code>${esc(e.email)}</code> — <a href="${safeHref(e.url)}">${esc(e.source)}</a></p>`).join('')}
         ${report.digitalIdentity.businessListings.map(b => `<p>Business: <strong>${esc(b.name)}</strong> on ${esc(b.platform)}${b.address ? ` — ${esc(b.address)}` : ''}</p>`).join('')}
-        ${report.digitalIdentity.classifiedAds.map(a => `<p>Ad: <a href="${esc(a.url)}">${esc(a.title)}</a> (${esc(a.platform)})</p>`).join('')}
+        ${report.digitalIdentity.classifiedAds.map(a => `<p>Ad: <a href="${safeHref(a.url)}">${esc(a.title)}</a> (${esc(a.platform)})</p>`).join('')}
       `)
     : section('🔍 Digital Identity', '<p class="empty">No digital identity data available.</p>');
 
   // Build social block
   const socialBlock = report.social
     ? section('🌐 Social & Web Presence', `
-        ${report.social.socialProfiles.map(p => `<p>Profile: <a href="${esc(p.url)}">${esc(p.name ?? p.platform)}</a> on ${esc(p.platform)}${p.followers ? ` (${esc(p.followers)} followers)` : ''}</p>`).join('')}
-        ${report.social.newsArticles.map(n => `<p>News: <a href="${esc(n.url)}">${esc(n.title)}</a>${n.date ? ` (${esc(n.date)})` : ''}</p>`).join('')}
+        ${report.social.socialProfiles.map(p => `<p>Profile: <a href="${safeHref(p.url)}">${esc(p.name ?? p.platform)}</a> on ${esc(p.platform)}${p.followers ? ` (${esc(p.followers)} followers)` : ''}</p>`).join('')}
+        ${report.social.newsArticles.map(n => `<p>News: <a href="${safeHref(n.url)}">${esc(n.title)}</a>${n.date ? ` (${esc(n.date)})` : ''}</p>`).join('')}
         ${report.social.courtRecords.map(c => `<p>⚖️ Court: <strong>${esc(c.case)}</strong> — ${esc(c.court)}: ${esc(c.summary)}</p>`).join('')}
       `)
     : section('🌐 Social & Web Presence', '<p class="empty">No social data available.</p>');
@@ -111,7 +118,7 @@ function buildHtml(report: InvestigationReport): string {
   // Source index
   const sourcesBlock = report.sources.length > 0
     ? section('Sources', report.sources.slice(0, 50).map((s, i) =>
-        `<p>[${i + 1}] <a href="${esc(s.url)}">${esc(s.title || s.url)}</a> — ${esc(s.source)}</p>`
+        `<p>[${i + 1}] <a href="${safeHref(s.url)}">${esc(s.title || s.url)}</a> — ${esc(s.source)}</p>`
       ).join(''))
     : '';
 
@@ -119,7 +126,7 @@ function buildHtml(report: InvestigationReport): string {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Phone Intel Report — ${esc(report.input)}</title>
+  <title>InTell Investigation Report — ${esc(report.input)}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: #111; font-size: 13px; line-height: 1.6; padding: 32px; }
@@ -145,7 +152,7 @@ function buildHtml(report: InvestigationReport): string {
   </style>
 </head>
 <body>
-  <h1>Phone Intel Report</h1>
+  <h1>InTell Investigation Report</h1>
   <div class="meta">
     Input: <strong>${esc(report.input)}</strong> (${esc(report.inputType)}) ·
     ID: ${esc(report.id)} ·
