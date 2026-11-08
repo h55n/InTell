@@ -1,20 +1,8 @@
 import { Router } from 'express';
-import { z } from 'zod';
+import { BulkSchema } from '../../middleware/requestSchemas.js';
 import { processBulk, getJob } from '../../services/bulkQueue.js';
 
 const router = Router();
-
-const BulkSchema = z.object({
-  inputs: z
-    .array(
-      z.object({
-        input: z.string().min(2).max(300).trim(),
-        inputType: z.enum(['phone', 'email', 'name', 'business']).optional(),
-      })
-    )
-    .min(1)
-    .max(50),
-});
 
 /** POST /api/bulk — submit a batch job */
 router.post('/', async (req, res) => {

@@ -1,30 +1,56 @@
+// Presentation categories used by the risk-meter component. The investigation
+// report itself carries a rating and a safety verdict instead of this field.
 export type RiskLevel = 'safe' | 'suspicious' | 'high_risk' | 'confirmed_scam';
 
-export interface SearchResult {
-  query: string; url: string; title: string; snippet: string; source: string;
+export interface AgentFinding {
+  agentId: number;
+  agentName: string;
+  status: 'running' | 'complete' | 'failed';
+  searchQueries: string[];
+  rawSearchResults: SearchResult[];
+  findings: Record<string, unknown>;
+  confidence: number;
+  executionMs: number;
+  error?: string;
 }
 
-export interface AgentFinding {
-  agentId: number; agentName: string; status: string;
-  searchQueries: string[]; rawSearchResults: SearchResult[];
-  findings: Record<string, unknown>; confidence: number;
-  executionMs: number; error?: string;
+export interface SearchResult {
+  query: string;
+  url: string;
+  title: string;
+  snippet: string;
+  source: string;
 }
 
 export interface TelecomFindings {
-  carrier: string | null; telecomCircle: string | null;
-  numberType: string; country: string | null;
-  isPorted: boolean; portedFrom: string | null;
-  registeredCity: string | null; registeredState: string | null;
-  isActive: boolean | null; traiData: string | null;
+  carrier: string | null;
+  telecomCircle: string | null;
+  numberType: 'mobile' | 'landline' | 'voip' | 'toll_free' | 'unknown';
+  country: string | null;
+  isPorted: boolean;
+  portedFrom: string | null;
+  registeredCity: string | null;
+  registeredState: string | null;
+  isActive: boolean | null;
+  traiData: string | null;
 }
 
 export interface SpamFindings {
-  totalReportsFound: number; spamScore: number;
-  confidence: string; categories: string[];
-  sourceSummaries: Array<{ source: string; url: string; reportCount: number; category: string; excerpt: string }>;
-  firstSeen: string | null; lastSeen: string | null;
-  knownNames: string[]; modus: string | null;
+  totalReportsFound: number;
+  spamScore: number;
+  confidence: 'None' | 'Low' | 'Medium' | 'High' | 'Confirmed';
+  categories: string[];
+  sourceSummaries: Array<{
+    source: string;
+    url: string;
+    reportCount: number;
+    category: string;
+    excerpt: string;
+  }>;
+  firstSeen: string | null;
+  lastSeen: string | null;
+  knownNames: string[];
+  modus: string | null;
 }
 
 export interface DigitalIdentityFindings {
@@ -38,8 +64,23 @@ export interface DigitalIdentityFindings {
 }
 
 export interface SocialFindings {
-  socialProfiles: Array<{ platform: string; url: string; name: string | null; bio: string | null; isVerified: boolean; followers: string | null; posts: string[] }>;
-  companyRegistrations: Array<{ name: string; registrationNumber: string | null; status: string | null; address: string | null; source: string; url: string }>;
+  socialProfiles: Array<{
+    platform: string;
+    url: string;
+    name: string | null;
+    bio: string | null;
+    isVerified: boolean;
+    followers: string | null;
+    posts: string[];
+  }>;
+  companyRegistrations: Array<{
+    name: string;
+    registrationNumber: string | null;
+    status: string | null;
+    address: string | null;
+    source: string;
+    url: string;
+  }>;
   newsArticles: Array<{ title: string; url: string; date: string | null; summary: string }>;
   courtRecords: Array<{ case: string; court: string; url: string; summary: string }>;
   gstDetails: Array<{ gstin: string; name: string; address: string; url: string }>;
@@ -47,33 +88,92 @@ export interface SocialFindings {
 }
 
 export interface LocationFindings {
-  country: string | null; state: string | null; city: string | null;
-  district: string | null; locality: string | null; pincode: string | null;
-  locationConfidence: string;
-  signals: Array<{ signalSource: string; sourceUrl: string; inferredLocation: string; confidence: string; reasoning: string }>;
-  isKnownScamZone: boolean; scamZoneName: string | null; scamZoneNotes: string | null;
+  country: string | null;
+  state: string | null;
+  city: string | null;
+  district: string | null;
+  locality: string | null;
+  pincode: string | null;
+  locationConfidence: 'Low' | 'Medium' | 'High';
+  signals: Array<{
+    signalSource: string;
+    sourceUrl: string;
+    inferredLocation: string;
+    confidence: 'Low' | 'Medium' | 'High';
+    reasoning: string;
+  }>;
+  isKnownScamZone: boolean;
+  scamZoneName: string | null;
+  scamZoneNotes: string | null;
   ipGeolocation: string | null;
 }
 
-export interface InvestigationReport {
-  id: string; input: string; inputType: string; createdAt: string;
-  status: string; executionMs: number;
-  riskLevel: RiskLevel; riskScore: number; riskReasoning: string;
-  telecom: TelecomFindings | null; spam: SpamFindings | null;
-  digitalIdentity: DigitalIdentityFindings | null; social: SocialFindings | null;
-  location: LocationFindings | null; agentLogs: AgentFinding[];
-  sources: SearchResult[]; summary: string; keyFacts: string[]; recommendations: string[];
+export interface FinancialFindings {
+  fundingRounds: number;
+  totalFundingAmount: string | null;
+  latestValuation: string | null;
+  investors: string[];
+  loansOrCharges: Array<{
+    bankOrEntity: string;
+    amount: string;
+    date: string;
+    status: string;
+  }>;
+  financialHealth: 'Excellent' | 'Good' | 'Poor' | 'Unknown';
+  financialDisputes: string[];
 }
 
+export interface InvestigationReport {
+  id: string;
+  input: string;
+  inputType: 'phone' | 'email' | 'name' | 'business';
+  createdAt: string;
+  status: 'complete' | 'partial' | 'failed';
+  executionMs: number;
+  rating: number;
+  safetyVerdict: 'safe' | 'unsafe';
+  riskReasoning: string;
+  telecom: TelecomFindings | null;
+  spam: SpamFindings | null;
+  digitalIdentity: DigitalIdentityFindings | null;
+  social: SocialFindings | null;
+  location: LocationFindings | null;
+  financial: FinancialFindings | null;
+  agentLogs: AgentFinding[];
+  sources: SearchResult[];
+  summary: string;
+  summaryPoints?: string[];
+  inferredProvider?: string | null;
+  inferredLocation?: string | null;
+  profileImageUrls: string[];
+  extractedContacts: Array<{ type: 'phone' | 'email' | 'social'; value: string }>;
+  keyFacts: string[];
+  recommendations: string[];
+}
+
+export interface InvestigateRequest {
+  input: string;
+  inputType?: 'phone' | 'email' | 'name' | 'business';
+}
+
+// `done` is emitted by the SSE route after the final report event.
 export interface StreamEvent {
-  type: string; agentId?: number; agentName?: string;
-  query?: string; result?: unknown; report?: InvestigationReport;
-  message?: string; timestamp: string;
+  type: 'agent_start' | 'agent_search' | 'agent_result' | 'agent_complete' | 'agent_error' | 'report_ready' | 'done' | 'error';
+  agentId?: number;
+  agentName?: string;
+  query?: string;
+  result?: unknown;
+  report?: InvestigationReport;
+  message?: string;
+  timestamp: string;
 }
 
 export interface AgentState {
-  id: number; name: string;
+  id: number;
+  name: string;
   status: 'idle' | 'running' | 'complete' | 'failed';
-  searches: string[]; searchCount: number; finding?: unknown;
+  searches: string[];
+  searchCount: number;
+  finding?: unknown;
   executionMs?: number;
 }
