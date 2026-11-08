@@ -51,7 +51,7 @@ export function buildHtml(report: InvestigationReport): string {
 
   // Build telecom block
   const telecomBlock = report.telecom
-    ? section('📡 Telecom Intelligence', `<table>
+    ? section('Telecom Intelligence', `<table>
         ${row('Carrier', report.telecom.carrier)}
         ${row('Circle', report.telecom.telecomCircle)}
         ${row('Number Type', report.telecom.numberType)}
@@ -61,11 +61,11 @@ export function buildHtml(report: InvestigationReport): string {
         ${row('Active', report.telecom.isActive === null ? 'Unknown' : report.telecom.isActive ? 'Yes' : 'No')}
         ${row('TRAI Notes', report.telecom.traiData)}
       </table>`)
-    : section('📡 Telecom Intelligence', '<p class="empty">No telecom data available.</p>');
+    : section('Telecom Intelligence', '<p class="empty">No telecom data available.</p>');
 
   // Build spam block
   const spamBlock = report.spam
-    ? section('🚨 Spam & Complaint Intelligence', `
+    ? section('Spam & Complaint Intelligence', `
         <div class="score-container">
           <div class="score-box" style="flex: 1; border-color: #e5e7eb;">
             <div class="score-value">${report.rating.toFixed(1)} / 5.0</div>
@@ -80,30 +80,30 @@ export function buildHtml(report: InvestigationReport): string {
         ${report.spam.modus ? `<p><strong>Modus Operandi:</strong> ${esc(report.spam.modus)}</p>` : ''}
         ${report.spam.sourceSummaries.map(s => `<p><a href="${safeHref(s.url)}">${esc(s.source)}</a> — ${s.reportCount} reports (${esc(s.category)}): ${esc(s.excerpt)}</p>`).join('')}
       `)
-    : section('🚨 Spam Intelligence', '<p class="empty">No spam data available.</p>');
+    : section('Spam Intelligence', '<p class="empty">No spam data available.</p>');
 
   // Build identity block
   const identityBlock = report.digitalIdentity
-    ? section('🔍 Digital Identity', `
+    ? section('Digital Identity', `
         ${report.digitalIdentity.associatedNames.map(n => `<p>Name: <strong>${esc(n.name)}</strong> — <a href="${safeHref(n.url)}">${esc(n.source)}</a></p>`).join('')}
         ${report.digitalIdentity.associatedEmails.map(e => `<p>Email: <code>${esc(e.email)}</code> — <a href="${safeHref(e.url)}">${esc(e.source)}</a></p>`).join('')}
         ${report.digitalIdentity.businessListings.map(b => `<p>Business: <strong>${esc(b.name)}</strong> on ${esc(b.platform)}${b.address ? ` — ${esc(b.address)}` : ''}</p>`).join('')}
         ${report.digitalIdentity.classifiedAds.map(a => `<p>Ad: <a href="${safeHref(a.url)}">${esc(a.title)}</a> (${esc(a.platform)})</p>`).join('')}
       `)
-    : section('🔍 Digital Identity', '<p class="empty">No digital identity data available.</p>');
+    : section('Digital Identity', '<p class="empty">No digital identity data available.</p>');
 
   // Build social block
   const socialBlock = report.social
-    ? section('🌐 Social & Web Presence', `
+    ? section('Social & Web Presence', `
         ${report.social.socialProfiles.map(p => `<p>Profile: <a href="${safeHref(p.url)}">${esc(p.name ?? p.platform)}</a> on ${esc(p.platform)}${p.followers ? ` (${esc(p.followers)} followers)` : ''}</p>`).join('')}
         ${report.social.newsArticles.map(n => `<p>News: <a href="${safeHref(n.url)}">${esc(n.title)}</a>${n.date ? ` (${esc(n.date)})` : ''}</p>`).join('')}
-        ${report.social.courtRecords.map(c => `<p>⚖️ Court: <strong>${esc(c.case)}</strong> — ${esc(c.court)}: ${esc(c.summary)}</p>`).join('')}
+        ${report.social.courtRecords.map(c => `<p>Court: <strong>${esc(c.case)}</strong> — ${esc(c.court)}: ${esc(c.summary)}</p>`).join('')}
       `)
-    : section('🌐 Social & Web Presence', '<p class="empty">No social data available.</p>');
+    : section('Social & Web Presence', '<p class="empty">No social data available.</p>');
 
   // Build location block
   const locationBlock = report.location
-    ? section('📍 Location Intelligence', `<table>
+    ? section('Location Intelligence', `<table>
         ${row('Country', report.location.country)}
         ${row('State', report.location.state)}
         ${row('City', report.location.city)}
@@ -111,9 +111,9 @@ export function buildHtml(report: InvestigationReport): string {
         ${row('Locality', report.location.locality)}
         ${row('Pincode', report.location.pincode)}
         ${row('Confidence', report.location.locationConfidence)}
-        ${report.location.isKnownScamZone ? `<tr><td class="label">Scam Zone</td><td style="color:#ef4444">⚠️ ${esc(report.location.scamZoneName)}</td></tr>` : ''}
+        ${report.location.isKnownScamZone ? `<tr><td class="label">Scam Zone</td><td style="color:#ef4444">${esc(report.location.scamZoneName)}</td></tr>` : ''}
       </table>`)
-    : section('📍 Location Intelligence', '<p class="empty">Location could not be determined.</p>');
+    : section('Location Intelligence', '<p class="empty">Location could not be determined.</p>');
 
   // Source index
   const sourcesBlock = report.sources.length > 0
