@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { createHash } from 'crypto';
-import { z } from 'zod';
+import { InvestigateSchema } from './middleware/requestSchemas.js';
 import { orchestrate } from './orchestrator/index.js';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
@@ -34,10 +34,6 @@ app.use('/api/stats', statsRouter);
 
 // ─── POST /api/investigate  (SSE streaming) ───────────────────────────────────
 
-const InvestigateSchema = z.object({
-  input: z.string().min(2).max(300).trim(),
-  inputType: z.enum(['phone', 'email', 'name', 'business']).optional(),
-});
 
 app.post('/api/investigate', limiter, validateInput, async (req, res) => {
   const parsed = InvestigateSchema.safeParse(req.body);
